@@ -163,7 +163,7 @@ function createAddCard() {
   return card;
 }
 
-/* ─── Kino Mode ──────────────────────────────────────────── */
+/* ─── Kino Mode ──────────────────────────────────────── */
 function openKino(stream) {
   kinoChannel = stream.channel;
   kinoChannelEl.textContent = stream.channel;
@@ -175,19 +175,73 @@ function openKino(stream) {
   kinoView.classList.add('visible');
   document.body.style.overflow = 'hidden';
 
+  // Push a history entry so the browser back button can exit kino
+  history.pushState({ kino: true, channel: stream.channel }, '', `#watch/${stream.channel}`);
+
   showToast(`▶ Watching ${stream.channel}`);
 }
 
-function closeKino() {
+/**
+ * Internal close — runs the actual teardown animation.
+ * Call this directly only when we do NOT want to touch history
+ * (i.e. we arrived here via popstate, so history is already moving).
+ */
+function _teardownKino() {
+  if (!kinoView.classList.contains('visible')) return;
   kinoView.classList.add('exiting');
 
   kinoView.addEventListener('animationend', () => {
     kinoView.classList.remove('visible', 'exiting');
-    // Stop the stream by clearing the src
     kinoIframe.src = '';
     kinoChannel = null;
     document.body.style.overflow = '';
   }, { once: true });
+}
+
+/**
+ * Public close — triggered by the ✕ button or ESC key.
+ * Goes back in history; popstate will call _teardownKino().
+ */
+function closeKino() {
+  if (history.state && history.state.kino) {
+    history.back(); // triggers popstate → _teardownKino()
+  } else {
+    _teardownKino();
+  }
+}
+
+// Browser back/forward button handler
+window.addEventListener('popstate', (e) => {
+  // If we popped away from a kino state, close the viewer
+  if (kinoView.classList.contains('visible')) {
+    _teardownKino();
+  }
+  // If we arrived at a kino hash (forward navigation), open it
+  else if (e.state && e.state.kino) {
+    const stream = streams.find(s => s.channel === e.state.channel);
+    if (stream) {
+      // Re-open without pushing another history entry
+      kinoChannel = stream.channel;
+      kinoChannelEl.textContent = stream.channel;
+      kinoIframe.src = twitchUrl(stream.channel, { autoplay: true, muted: false });
+      kinoView.classList.remove('exiting');
+      kinoView.classList.add('visible');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+});
+
+// On page load: if the URL already has a #watch/channel hash, open kino
+function handleInitialHash() {
+  const match = window.location.hash.match(/^#watch\/([a-z0-9_]{1,25})$/i);
+  if (match) {
+    const channel = match[1].toLowerCase();
+    const stream = streams.find(s => s.channel === channel)
+      || { channel, title: channel };
+    // Replace state so back goes to the plain grid URL
+    history.replaceState({ kino: true, channel }, '', window.location.hash);
+    openKino(stream);
+  }
 }
 
 kinoClose.addEventListener('click', closeKino);
@@ -275,3 +329,4 @@ function stringToHue(str) {
 
 /* ─── Init ───────────────────────────────────────────────── */
 renderGrid();
+handleInitialHash();
