@@ -8,43 +8,52 @@
 /* ─── Design Tokens ──────────────────────────────────────── */
 :root {
   /* Colors */
-  --bg-base:        #070711;
-  --bg-surface:     #0e0e1e;
-  --bg-card:        rgba(255, 255, 255, 0.04);
-  --bg-card-hover:  rgba(255, 255, 255, 0.09);
-  --border-subtle:  rgba(255, 255, 255, 0.08);
-  --border-accent:  rgba(145, 70, 255, 0.5);
+  --bg-base: #070711;
+  --bg-surface: #0e0e1e;
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-card-hover: rgba(255, 255, 255, 0.09);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-accent: rgba(145, 70, 255, 0.5);
 
-  --accent-primary:   #9146ff;   /* Twitch purple */
-  --accent-glow:      #bf8bff;
-  --accent-secondary: #00d4ff;   /* Electric cyan */
-  --danger:           #ff4d6a;
+  --accent-primary: #9146ff;
+  /* Twitch purple */
+  --accent-glow: #bf8bff;
+  --accent-secondary: #00d4ff;
+  /* Electric cyan */
+  --danger: #ff4d6a;
 
-  --text-primary:   #f0eeff;
+  --text-primary: #f0eeff;
   --text-secondary: #9e9ec4;
-  --text-muted:     #5a5a85;
+  --text-muted: #5a5a85;
 
   /* Sizing */
-  --navbar-h:    64px;
-  --radius-sm:   6px;
-  --radius-md:   12px;
-  --radius-lg:   20px;
+  --navbar-h: 64px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
 
   /* Shadows */
-  --shadow-card:  0 4px 24px rgba(0, 0, 0, 0.5);
-  --shadow-glow:  0 0 32px rgba(145, 70, 255, 0.35);
-  --shadow-kino:  0 0 0 3px var(--accent-primary), 0 0 60px rgba(145, 70, 255, 0.6);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 32px rgba(145, 70, 255, 0.35);
+  --shadow-kino: 0 0 0 3px var(--accent-primary), 0 0 60px rgba(145, 70, 255, 0.6);
 
   /* Transitions */
-  --t-fast:   0.15s ease;
+  --t-fast: 0.15s ease;
   --t-smooth: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   --t-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ─── Reset & Base ───────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-html, body {
+html,
+body {
   height: 100%;
   font-family: 'Inter', system-ui, sans-serif;
   background: var(--bg-base);
@@ -68,7 +77,9 @@ body::before {
 /* ─── Navbar ─────────────────────────────────────────────── */
 #navbar {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: var(--navbar-h);
   z-index: 100;
   display: flex;
@@ -154,8 +165,17 @@ body::before {
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(0.8); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
 }
 
 .btn-primary {
@@ -242,7 +262,6 @@ body::before {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
-  cursor: pointer;
   transition: all var(--t-smooth);
   aspect-ratio: 16 / 9;
 }
@@ -251,18 +270,18 @@ body::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(145, 70, 255, 0.06) 0%,
-    transparent 60%
-  );
+  background: linear-gradient(135deg,
+      rgba(145, 70, 255, 0.06) 0%,
+      transparent 60%);
   opacity: 0;
   transition: opacity var(--t-smooth);
   z-index: 1;
   pointer-events: none;
 }
 
-.stream-card:hover::before { opacity: 1; }
+.stream-card:hover::before {
+  opacity: 1;
+}
 
 .stream-card:hover {
   border-color: var(--border-accent);
@@ -270,18 +289,13 @@ body::before {
   transform: translateY(-3px) scale(1.01);
 }
 
-.stream-card:active {
-  transform: translateY(0) scale(0.99);
-}
 
-/* iframe fills the card */
+/* iframe fills the card — pointer-events enabled so Twitch controls work */
 .stream-card iframe {
   width: 100%;
   height: 100%;
   border: none;
   display: block;
-  pointer-events: none; /* prevent iframe from consuming clicks */
-  transition: opacity var(--t-smooth);
 }
 
 /* Overlay: click to watch */
@@ -292,17 +306,17 @@ body::before {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: linear-gradient(
-    to top,
-    rgba(7, 7, 17, 0.9) 0%,
-    rgba(7, 7, 17, 0.2) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(to top,
+      rgba(7, 7, 17, 0.9) 0%,
+      rgba(7, 7, 17, 0.2) 50%,
+      transparent 100%);
   opacity: 0;
   transition: opacity var(--t-smooth);
 }
 
-.stream-card:hover .card-overlay { opacity: 1; }
+.stream-card:hover .card-overlay {
+  opacity: 1;
+}
 
 .card-info {
   padding: 14px;
@@ -343,7 +357,7 @@ body::before {
 
 .card-title {
   font-size: 11px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   margin-top: 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -399,8 +413,15 @@ body::before {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* Empty / placeholder card */
@@ -471,10 +492,10 @@ body::before {
 #kino-view {
   display: none;
   position: fixed;
-  inset: 0;
-  z-index: 200;
+  inset: 0; /* fills full screen — navbar is hidden when kino is open */
+  z-index: 150;
   background: #000;
-  animation: kino-enter 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: kino-enter 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 #kino-view.visible {
@@ -486,6 +507,7 @@ body::before {
     opacity: 0;
     transform: scale(0.97);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -497,6 +519,7 @@ body::before {
     opacity: 1;
     transform: scale(1);
   }
+
   to {
     opacity: 0;
     transform: scale(0.97);
@@ -514,43 +537,29 @@ body::before {
   display: block;
 }
 
-/* Kino floating close button — always visible top-right circle */
+/* Kino close button — lives in navbar, styled like a danger pill */
 #kino-close {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 2147483647; /* max z-index — sits above iframe & fullscreen */
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 2px solid rgba(255, 255, 255, 0.22);
-  color: #fff;
-  font-size: 18px;
-  line-height: 1;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(210, 40, 60, 0.15);
+  border: 1px solid rgba(255, 80, 100, 0.4);
+  color: #ff6b7a;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  display: none; /* shown only when kino is open */
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.22s var(--t-spring);
-}
-
-body.kino-open #kino-close {
-  display: flex;
+  font-family: inherit;
+  transition: all var(--t-smooth);
+  white-space: nowrap;
 }
 
 #kino-close:hover {
   background: rgba(210, 40, 60, 0.8);
-  border-color: rgba(255, 80, 100, 0.7);
-  transform: scale(1.12);
+  border-color: rgba(255, 80, 100, 0.8);
+  color: #fff;
+  transform: none;
 }
 
-/* Hide navbar when kino is open */
-body.kino-open #navbar {
-  display: none;
-}
+/* Navbar stays fully visible over kino in hover mode */
 
 /* ─── Add Stream Modal ───────────────────────────────────── */
 #modal-overlay {
@@ -570,8 +579,13 @@ body.kino-open #navbar {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .modal {
@@ -581,13 +595,20 @@ body.kino-open #navbar {
   padding: 32px;
   width: 420px;
   max-width: 90vw;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7), var(--shadow-glow);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), var(--shadow-glow);
   animation: modal-slide-up 0.3s var(--t-spring);
 }
 
 @keyframes modal-slide-up {
-  from { opacity: 0; transform: translateY(20px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0)    scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal h2 {
@@ -694,7 +715,7 @@ body.kino-open #navbar {
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 500;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   transition: transform 0.35s var(--t-spring), opacity 0.35s ease;
   opacity: 0;
   white-space: nowrap;
@@ -707,21 +728,85 @@ body.kino-open #navbar {
 
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 1400px) {
-  #stream-grid { grid-template-columns: repeat(3, 1fr); }
+  #stream-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 1024px) {
-  #stream-grid { grid-template-columns: repeat(2, 1fr); }
+  #stream-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 600px) {
-  #stream-grid { grid-template-columns: 1fr; gap: 10px; }
-  #grid-view { padding: 16px; }
-  .nav-logo-text { font-size: 17px; }
+  #stream-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  #grid-view {
+    padding: 16px;
+  }
+
+  .nav-logo-text {
+    font-size: 17px;
+  }
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: rgba(145, 70, 255, 0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(145, 70, 255, 0.6); }
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(145, 70, 255, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(145, 70, 255, 0.6);
+}
+
+@media (max-width: 1024px) {
+  #stream-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  #stream-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  #grid-view {
+    padding: 16px;
+  }
+
+  .nav-logo-text {
+    font-size: 17px;
+  }
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(145, 70, 255, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(145, 70, 255, 0.6);
+}
