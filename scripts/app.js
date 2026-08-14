@@ -1,0 +1,277 @@
+/**
+ * MultiStream SaaS — app.js
+ * Handles: stream grid rendering, kino mode, add/remove streams, toast notifications
+ */
+
+'use strict';
+
+/* ─── Configuration ──────────────────────────────────────── */
+
+// Detected hostname for Twitch embed parent param
+const HOSTNAME = window.location.hostname || 'localhost';
+
+// Initial streams (dummy / real Twitch channels to start with)
+const DEFAULT_STREAMS = [
+  { channel: 'shroud',    title: 'shroud'    },
+  { channel: 'xqc',       title: 'xQc'       },
+];
+
+// Max grid slots (4×4)
+const GRID_COLS = 4;
+const GRID_ROWS = 4;
+const MAX_SLOTS = GRID_COLS * GRID_ROWS;
+
+/* ─── State ──────────────────────────────────────────────── */
+let streams   = [...DEFAULT_STREAMS]; // active stream list
+let kinoChannel = null;               // currently watching in kino mode
+
+/* ─── DOM References ─────────────────────────────────────── */
+const streamGrid    = document.getElementById('stream-grid');
+const kinoView      = document.getElementById('kino-view');
+const kinoIframe    = document.getElementById('kino-iframe');
+const kinoClose     = document.getElementById('kino-close');
+const kinoChannelEl = document.getElementById('kino-channel-name');
+const streamCountEl = document.getElementById('stream-count');
+const toast         = document.getElementById('toast');
+const modalOverlay  = document.getElementById('modal-overlay');
+const modalInput    = document.getElementById('modal-channel-input');
+const btnAddStream  = document.getElementById('btn-add-stream');
+const btnModalAdd   = document.getElementById('btn-modal-add');
+const btnModalClose = document.getElementById('btn-modal-close');
+
+/* ─── Twitch URL Builder ─────────────────────────────────── */
+function twitchUrl(channel, { autoplay = false, muted = true } = {}) {
+  const params = new URLSearchParams({
+    channel,
+    parent: HOSTNAME,
+    autoplay: String(autoplay),
+    muted:    String(muted),
+  });
+  return `https://player.twitch.tv/?${params.toString()}`;
+}
+
+/* ─── Grid Rendering ─────────────────────────────────────── */
+function renderGrid() {
+  streamGrid.innerHTML = '';
+
+  // Render active stream cards
+  streams.forEach((s, idx) => {
+    const card = createStreamCard(s, idx);
+    streamGrid.appendChild(card);
+  });
+
+  // Fill remaining slots with empty / add cards
+  const remaining = MAX_SLOTS - streams.length;
+  for (let i = 0; i < remaining; i++) {
+    if (i === 0) {
+      // First empty slot → "Add Stream" button
+      streamGrid.appendChild(createAddCard());
+    } else {
+      streamGrid.appendChild(createEmptyCard());
+    }
+  }
+
+  // Update stream count badge
+  if (streamCountEl) {
+    streamCountEl.textContent = `${streams.length} / ${MAX_SLOTS} streams`;
+  }
+}
+
+function createStreamCard(stream, idx) {
+  const card = document.createElement('div');
+  card.className = 'stream-card';
+  card.dataset.channel = stream.channel;
+  card.dataset.idx = idx;
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-label', `Watch ${stream.channel} in kino mode`);
+
+  // Twitch embed iframe (muted, no autoplay in grid)
+  const iframe = document.createElement('iframe');
+  iframe.src = twitchUrl(stream.channel, { autoplay: false, muted: true });
+  iframe.allow = 'autoplay; fullscreen';
+  iframe.title = `${stream.channel} stream`;
+  iframe.loading = 'lazy';
+
+  // Live badge
+  const liveBadge = document.createElement('div');
+  liveBadge.className = 'live-badge';
+  liveBadge.textContent = 'LIVE';
+
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'card-overlay';
+
+  // Avatar initials
+  const initials = stream.channel.slice(0, 2).toUpperCase();
+  const hue = stringToHue(stream.channel);
+
+  overlay.innerHTML = `
+    <div class="card-info">
+      <div class="card-channel">
+        <div class="card-avatar" style="background: linear-gradient(135deg, hsl(${hue},70%,50%), hsl(${(hue + 60) % 360},70%,55%))">
+          ${initials}
+        </div>
+        <div>
+          <div class="card-name">${stream.channel}</div>
+          <div class="card-title">Click to watch in Kino</div>
+        </div>
+      </div>
+      <div class="card-watch-btn">
+        <span>▶</span> Watch
+      </div>
+    </div>
+  `;
+
+  card.appendChild(iframe);
+  card.appendChild(liveBadge);
+  card.appendChild(overlay);
+
+  // Click / keyboard → open kino
+  card.addEventListener('click', () => openKino(stream));
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') openKino(stream);
+  });
+
+  return card;
+}
+
+function createEmptyCard() {
+  const card = document.createElement('div');
+  card.className = 'stream-card empty';
+  card.innerHTML = `
+    <div class="empty-icon">📺</div>
+    <div class="empty-label">Empty slot</div>
+  `;
+  return card;
+}
+
+function createAddCard() {
+  const card = document.createElement('div');
+  card.className = 'add-stream-card';
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-label', 'Add a new stream');
+  card.innerHTML = `
+    <div class="add-icon">+</div>
+    <div class="add-label">Add Stream</div>
+  `;
+  card.addEventListener('click', openModal);
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') openModal();
+  });
+  return card;
+}
+
+/* ─── Kino Mode ──────────────────────────────────────────── */
+function openKino(stream) {
+  kinoChannel = stream.channel;
+  kinoChannelEl.textContent = stream.channel;
+
+  // Build URL with autoplay + sound
+  kinoIframe.src = twitchUrl(stream.channel, { autoplay: true, muted: false });
+
+  kinoView.classList.remove('exiting');
+  kinoView.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+
+  showToast(`▶ Watching ${stream.channel}`);
+}
+
+function closeKino() {
+  kinoView.classList.add('exiting');
+
+  kinoView.addEventListener('animationend', () => {
+    kinoView.classList.remove('visible', 'exiting');
+    // Stop the stream by clearing the src
+    kinoIframe.src = '';
+    kinoChannel = null;
+    document.body.style.overflow = '';
+  }, { once: true });
+}
+
+kinoClose.addEventListener('click', closeKino);
+
+// ESC key also closes kino
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (kinoView.classList.contains('visible')) closeKino();
+    if (modalOverlay.classList.contains('visible'))  closeModal();
+  }
+});
+
+/* ─── Add Stream Modal ───────────────────────────────────── */
+function openModal() {
+  if (streams.length >= MAX_SLOTS) {
+    showToast('⚠️ Grid is full (16/16 streams)');
+    return;
+  }
+  modalOverlay.classList.add('visible');
+  setTimeout(() => modalInput.focus(), 100);
+}
+
+function closeModal() {
+  modalOverlay.classList.remove('visible');
+  modalInput.value = '';
+}
+
+function addStream() {
+  const raw = modalInput.value.trim().toLowerCase();
+  if (!raw) {
+    modalInput.focus();
+    return;
+  }
+
+  // Strip URL prefixes if user pastes a full URL
+  const channel = raw
+    .replace(/^https?:\/\/(www\.)?twitch\.tv\//i, '')
+    .replace(/\/$/, '')
+    .split('/')[0];
+
+  if (!channel || !/^[a-z0-9_]{1,25}$/.test(channel)) {
+    showToast('❌ Invalid channel name');
+    return;
+  }
+
+  if (streams.find(s => s.channel === channel)) {
+    showToast('⚠️ Already in grid');
+    closeModal();
+    return;
+  }
+
+  streams.push({ channel, title: channel });
+  closeModal();
+  renderGrid();
+  showToast(`✅ Added ${channel}`);
+}
+
+btnAddStream.addEventListener('click', openModal);
+btnModalAdd.addEventListener('click', addStream);
+btnModalClose.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
+modalInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addStream();
+});
+
+/* ─── Toast ──────────────────────────────────────────────── */
+let toastTimer = null;
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+/* ─── Utility ────────────────────────────────────────────── */
+// Deterministic hue from channel name for avatars
+function stringToHue(str) {
+  let hash = 0;
+  for (const c of str) hash = (hash * 31 + c.charCodeAt(0)) % 360;
+  return hash;
+}
+
+/* ─── Init ───────────────────────────────────────────────── */
+renderGrid();
