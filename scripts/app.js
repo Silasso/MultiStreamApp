@@ -30,7 +30,6 @@ const streamGrid    = document.getElementById('stream-grid');
 const kinoView      = document.getElementById('kino-view');
 const kinoIframe    = document.getElementById('kino-iframe');
 const kinoClose     = document.getElementById('kino-close');
-const kinoChannelEl = document.getElementById('kino-channel-name');
 const streamCountEl = document.getElementById('stream-count');
 const toast         = document.getElementById('toast');
 const modalOverlay  = document.getElementById('modal-overlay');
@@ -163,19 +162,39 @@ function createAddCard() {
   return card;
 }
 
+
+/* ─── Fullscreen helpers ───────────────────────────────── */
+function enterFullscreen() {
+  const el = document.documentElement;
+  if (el.requestFullscreen)               return el.requestFullscreen();
+  if (el.webkitRequestFullscreen)         return el.webkitRequestFullscreen();
+  if (el.mozRequestFullScreen)            return el.mozRequestFullScreen();
+  if (el.msRequestFullscreen)             return el.msRequestFullscreen();
+}
+
+function exitFullscreenSafe() {
+  if (!document.fullscreenElement &&
+      !document.webkitFullscreenElement &&
+      !document.mozFullScreenElement) return;
+  if (document.exitFullscreen)            document.exitFullscreen();
+  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  else if (document.mozCancelFullScreen)  document.mozCancelFullScreen();
+  else if (document.msExitFullscreen)     document.msExitFullscreen();
+}
+
 /* ─── Kino Mode ──────────────────────────────────────── */
 function openKino(stream) {
   kinoChannel = stream.channel;
-  kinoChannelEl.textContent = stream.channel;
 
-  // Build URL with autoplay + sound
   kinoIframe.src = twitchUrl(stream.channel, { autoplay: true, muted: false });
 
   kinoView.classList.remove('exiting');
   kinoView.classList.add('visible');
+  document.body.classList.add('kino-open');     // shows close btn, hides navbar
   document.body.style.overflow = 'hidden';
 
-  // Push a history entry so the browser back button can exit kino
+  enterFullscreen().catch(() => {});
+
   history.pushState({ kino: true, channel: stream.channel }, '', `#watch/${stream.channel}`);
 
   showToast(`▶ Watching ${stream.channel}`);
@@ -188,10 +207,14 @@ function openKino(stream) {
  */
 function _teardownKino() {
   if (!kinoView.classList.contains('visible')) return;
+
+  exitFullscreenSafe();
+
   kinoView.classList.add('exiting');
 
   kinoView.addEventListener('animationend', () => {
     kinoView.classList.remove('visible', 'exiting');
+    document.body.classList.remove('kino-open'); // hides close btn, restores navbar
     kinoIframe.src = '';
     kinoChannel = null;
     document.body.style.overflow = '';
@@ -220,13 +243,13 @@ window.addEventListener('popstate', (e) => {
   else if (e.state && e.state.kino) {
     const stream = streams.find(s => s.channel === e.state.channel);
     if (stream) {
-      // Re-open without pushing another history entry
       kinoChannel = stream.channel;
-      kinoChannelEl.textContent = stream.channel;
       kinoIframe.src = twitchUrl(stream.channel, { autoplay: true, muted: false });
       kinoView.classList.remove('exiting');
       kinoView.classList.add('visible');
+      document.body.classList.add('kino-open');
       document.body.style.overflow = 'hidden';
+      enterFullscreen().catch(() => {});
     }
   }
 });
@@ -238,9 +261,14 @@ function handleInitialHash() {
     const channel = match[1].toLowerCase();
     const stream = streams.find(s => s.channel === channel)
       || { channel, title: channel };
-    // Replace state so back goes to the plain grid URL
     history.replaceState({ kino: true, channel }, '', window.location.hash);
-    openKino(stream);
+    // Don't auto-fullscreen on page load (browser blocks without user gesture)
+    kinoChannel = stream.channel;
+    kinoIframe.src = twitchUrl(stream.channel, { autoplay: true, muted: false });
+    kinoView.classList.remove('exiting');
+    kinoView.classList.add('visible');
+    document.body.classList.add('kino-open');
+    document.body.style.overflow = 'hidden';
   }
 }
 

@@ -81,23 +81,12 @@
       aria-modal="true"
       aria-label="Kino stream viewer"
     >
-      <!-- Top bar (hover to reveal) -->
-      <div id="kino-bar">
-        <div class="kino-info">
-          <div class="kino-live" aria-label="Live stream indicator">LIVE</div>
-          <span
-            id="kino-channel-name"
-            class="kino-channel-name"
-            aria-live="polite"
-          ></span>
-        </div>
-
-        <button
-          id="kino-close"
-          aria-label="Close kino mode and return to grid"
-          title="Close (Esc)"
-        >✕</button>
-      </div>
+      <!-- Single floating close button -->
+      <button
+        id="kino-close"
+        aria-label="Close kino mode and return to grid"
+        title="Close (Esc)"
+      >✕</button>
 
       <!-- Stream iframe — src injected by JS -->
       <iframe
