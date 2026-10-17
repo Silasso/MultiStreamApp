@@ -506,7 +506,24 @@ body.kino-open #kino-bar {
 
 .kino-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.kino-volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.kino-volume input {
+  width: 120px;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
 }
 
 #kino-close {

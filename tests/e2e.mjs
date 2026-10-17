@@ -171,6 +171,13 @@ try {
     assert(box.width === 1600 && box.y === 44 && box.height === 900 - 44, `box ${JSON.stringify(box)}`);
     assert(page.reloads.length === 0, `players reloaded: ${page.reloads}`);
   });
+  await step('players load without Twitch HUD; kino volume slider drives the player', async () => {
+    const srcs = await page.locator('.player-host iframe').evaluateAll(fs => fs.map(f => f.src));
+    assert(srcs.every(u => new URL(u).searchParams.get('controls') === 'false'), 'player without controls=false');
+    await page.locator('#kino-volume').fill('30');
+    await page.waitForFunction(c => Math.abs(window.multistream.player(c).getVolume() - 0.3) < 0.01, b, { timeout: 3000 });
+    assert(await page.evaluate(() => localStorage.getItem('multistream.volume')) === '0.3', 'volume not saved');
+  });
   await step('still playing with sound after 3s (Twitch never saw the click)', async () => {
     await page.waitForTimeout(3000);
     const s = await state(page, b);

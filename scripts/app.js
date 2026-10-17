@@ -22,18 +22,20 @@ const STREAMS = [
 
 const MAX_SLOTS = 16; // 4×4 grid
 const STORAGE_KEY = 'multistream.streams';
+const VOLUME_KEY = 'multistream.volume';
+const DEFAULT_VOLUME = 0.5;
 const PARENT_HOST = window.location.hostname || 'localhost'; // Twitch `parent` param
 
 // Twitch's player watches its own visibility (IntersectionObserver v2). While
 // it counts as hidden — covered by the kino card, scrolled away, or covered by
 // anything else — it pauses and rejects play() with a console warning. It also
 // decides about autoplay only once at load; if that fails, it sits in 'Ready'.
-// So we keep nudging every stalled player that should be running, with a
-// growing pause between attempts to avoid flooding Twitch with rejected calls.
-const RESUME_INTERVAL_MS = 300;
-const RESUME_BACKOFF_MS = [300, 1000, 2000, 5000];
-// Twitch re-checks visibility with a 1s delay; play() before that is rejected.
-const VISIBILITY_SETTLE_MS = 1100;
+// So we run the same visibility check ourselves (visibilityWatcher) and call
+// play() the moment a stalled player becomes visible again — then retry fast
+// for a moment (Twitch's own check may lag ours by a frame or two), then back
+// off to avoid flooding Twitch with rejected calls.
+const RESUME_INTERVAL_MS = 100;
+const RESUME_BACKOFF_MS = [100, 100, 100, 200, 300, 1000, 2000, 5000];
 const STALLED_STATES = ['Idle', 'Ready'];
 // In kino, a pause shortly after opening is a side effect (the player was
 // paused while hidden). Later pauses are the viewer's choice and are respected.
@@ -59,6 +61,7 @@ const streamCountEl = document.getElementById('stream-count');
 const kinoChannelEl = document.getElementById('kino-channel');
 const kinoClose = document.getElementById('kino-close');
 const kinoFullscreen = document.getElementById('kino-fullscreen');
+const kinoVolume = document.getElementById('kino-volume');
 const autoplayHint = document.getElementById('autoplay-hint');
 const autoplayHintText = document.getElementById('autoplay-hint-text');
 const btnStartAll = document.getElementById('btn-start-all');
@@ -82,6 +85,20 @@ function loadStreams() {
     }
   } catch { /* storage blocked or corrupt → defaults */ }
   return STREAMS.map(s => ({ ...s }));
+}
+
+function loadVolume() {
+  try {
+    const v = parseFloat(localStorage.getItem(VOLUME_KEY));
+    if (v >= 0 && v <= 1) return v;
+  } catch { /* storage blocked → default */ }
+  return DEFAULT_VOLUME;
+}
+
+function saveVolume(v) {
+  try {
+    localStorage.setItem(VOLUME_KEY, String(v));
+  } catch { /* storage blocked → volume lives for this session only */ }
 }
 
 function saveStreams() {
@@ -133,7 +150,8 @@ function mountCard(stream) {
   // must be created inside a connected element and never moved afterwards).
   streamGrid.insertBefore(el, streamGrid.querySelector('.slot'));
 
-  const entry = { el, player: null, ready: false, offline: false, resumeTries: 0, nextResumeAt: 0 };
+  // visible: our own reading of Twitch's visibility check (see visibilityWatcher)
+  const entry = { el, player: null, ready: false, offline: false, visible: true, resumeTries: 0, nextResumeAt: 0 };
   cards.set(stream.channel, entry);
 
   if (!window.Twitch?.Player) return;
@@ -144,8 +162,13 @@ function mountCard(stream) {
     height: '100%',
     autoplay: true,
     muted: true,
+    // No Twitch HUD (title, follow buttons, control bar). Without this, every
+    // resume — e.g. all grid players after leaving kino — shows the HUD for
+    // ~2–3s. Volume is controlled from our kino bar instead (#kino-volume).
+    controls: false,
   });
   playerSizer.observe(el.querySelector('.player-host'));
+  visibilityWatcher.observe(el.querySelector('iframe'));
   entry.player.addEventListener(Twitch.Player.READY, () => { entry.ready = true; });
   entry.player.addEventListener(Twitch.Player.ONLINE, () => { entry.offline = false; });
   entry.player.addEventListener(Twitch.Player.OFFLINE, () => { entry.offline = true; });
@@ -201,21 +224,39 @@ function resumeIfNeeded(channel, entry) {
     entry.resumeTries = 0;
     return;
   }
+  if (!entry.visible) return; // Twitch would reject it anyway
   const now = performance.now();
   if (!shouldBePlaying(channel) || now < entry.nextResumeAt) return;
   entry.player.play();
   entry.nextResumeAt = now + RESUME_BACKOFF_MS[Math.min(entry.resumeTries++, RESUME_BACKOFF_MS.length - 1)];
 }
 
-// After a view change, visibility changes too: retry as soon as Twitch has
-// re-checked it.
+// After a view change, start over with fast retries.
 function resetResumeBackoff() {
-  const at = performance.now() + VISIBILITY_SETTLE_MS;
   cards.forEach((entry) => {
     entry.resumeTries = 0;
-    entry.nextResumeAt = at;
+    entry.nextResumeAt = 0;
   });
 }
+
+// Same check Twitch runs inside each player (IntersectionObserver v2), but
+// from our page with the minimum delay. The moment a stalled player counts as
+// visible again (kino closed, switched to it, scrolled into view) it gets
+// play() right away instead of waiting for the next timer tick.
+// Browsers without v2 (no isVisible) fall back to plain intersection.
+const visibilityWatcher = new IntersectionObserver((records) => {
+  for (const r of records) {
+    const channel = r.target.closest('.stream-card')?.dataset.channel;
+    const entry = cards.get(channel);
+    if (!entry) continue;
+    entry.visible = r.isVisible ?? r.isIntersecting;
+    if (entry.visible) {
+      entry.resumeTries = 0;
+      entry.nextResumeAt = 0;
+      resumeIfNeeded(channel, entry);
+    }
+  }
+}, { threshold: [0], trackVisibility: true, delay: 100 });
 
 const STATUS_LABELS = { live: 'Live', paused: 'Paused', offline: 'Offline', loading: 'Loading' };
 
@@ -371,7 +412,7 @@ function openKino(channel) {
   kinoChannelEl.textContent = streams.find(s => s.channel === channel)?.title || channel;
 
   if (entry.player) {
-    if (entry.player.getVolume() === 0) entry.player.setVolume(0.5);
+    entry.player.setVolume(Number(kinoVolume.value) / 100);
     entry.player.setMuted(false);
     entry.player.play();
   }
@@ -421,6 +462,16 @@ function exitFullscreen() {
 
 kinoClose.addEventListener('click', closeKino);
 kinoFullscreen.addEventListener('click', toggleFullscreen);
+
+// Our own volume control (Twitch's controls are hidden, see mountCard()).
+kinoVolume.value = String(Math.round(loadVolume() * 100));
+kinoVolume.addEventListener('input', () => {
+  const v = Number(kinoVolume.value) / 100;
+  cards.get(kinoChannel)?.player?.setVolume(v);
+  saveVolume(v);
+});
+// Don't let the slider keep focus: arrow keys / digits belong to the app.
+kinoVolume.addEventListener('change', () => kinoVolume.blur());
 
 /* ─── Keyboard ───────────────────────────────────────────── */
 document.addEventListener('keydown', (e) => {
@@ -478,6 +529,7 @@ function removeStream(channel) {
   if (!entry) return;
   if (channel === kinoChannel) teardownKino();
   playerSizer.unobserve(entry.el.querySelector('.player-host'));
+  visibilityWatcher.unobserve(entry.el.querySelector('iframe'));
   entry.el.remove();
   cards.delete(channel);
   streams = streams.filter(s => s.channel !== channel);
