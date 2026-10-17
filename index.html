@@ -5,89 +5,71 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- SEO -->
-  <title>MultiStream — Watch Multiple Twitch Streams at Once</title>
+  <title>MultiStream — Cast Twitch Streams Instantly</title>
   <meta name="description"
-    content="MultiStream is a free SaaS that lets you watch multiple Twitch streams simultaneously in a gorgeous 4×4 grid. Click any stream to open it in full Kino mode with sound." />
+    content="Keep up to 16 Twitch streams in a live grid and click any of them to cast it full-window with sound — instantly, without reloading." />
   <meta name="theme-color" content="#9146ff" />
 
-  <!-- Open Graph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="MultiStream — Watch Multiple Twitch Streams at Once" />
-  <meta property="og:description"
-    content="Watch up to 16 Twitch streams at the same time. Click any stream to enter Kino mode." />
-  <meta property="og:url" content="https://multistream.app" />
-
-  <!-- Favicon (emoji) -->
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>" />
 
-  <!-- Styles -->
+  <link rel="preconnect" href="https://player.twitch.tv" />
   <link rel="stylesheet" href="styles/main.css" />
 </head>
 
 <body>
 
-  <!-- ═══════════════════════════════════════════════
-       NAVBAR
-  ═══════════════════════════════════════════════ -->
+  <!-- ═══ NAVBAR ═══════════════════════════════════════ -->
   <nav id="navbar" aria-label="Main navigation">
-    <a href="/" class="nav-logo" aria-label="MultiStream home">
+    <a href="./" class="nav-logo" aria-label="MultiStream home">
       <div class="nav-logo-icon" aria-hidden="true">📺</div>
       <span class="nav-logo-text">Multi<span>Stream</span></span>
     </a>
 
     <div class="nav-actions">
-      <div class="nav-pill" aria-label="Twitch live status">
-        <span class="dot" aria-hidden="true"></span>
-        Twitch Live
-      </div>
-      <!-- Close button — hidden until kino is open, lives in navbar so it never overlaps the iframe -->
-      <button id="kino-close" aria-label="Close focused stream" title="Close (Esc)" style="display:none">
-        ✕ Close
-      </button>
-      <button id="btn-add-stream" class="btn-primary" aria-label="Add a new stream to the grid">
-        + Add Stream
-      </button>
+      <div class="stream-count-badge" id="stream-count">0 / 16 streams</div>
+      <button id="btn-add-stream" class="btn-primary">+ Add Stream</button>
     </div>
   </nav>
 
-  <!-- ═══════════════════════════════════════════════
-       APP WRAPPER
-  ═══════════════════════════════════════════════ -->
+  <!-- ═══ APP ══════════════════════════════════════════ -->
   <main id="app">
-
-    <!-- ── Grid View ────────────────────────────── -->
     <section id="grid-view" aria-label="Stream grid">
       <header class="grid-header">
-        <div class="grid-header-left">
-          <h1>Live Streams</h1>
-          <p>Hover any stream to focus it with sound</p>
-        </div>
-        <div class="stream-count-badge">
-          <span aria-hidden="true">🎮</span>
-          <span id="stream-count">0 / 16 streams</span>
-        </div>
+        <h1>Live Streams</h1>
+        <p>Click a stream to cast it full-window with sound · <kbd>1</kbd>–<kbd>9</kbd> switch instantly ·
+          <kbd>Esc</kbd> back to grid</p>
       </header>
 
-      <!-- 4×4 grid — populated by JS -->
-      <div id="stream-grid" role="list" aria-label="4 by 4 stream grid"></div>
+      <!-- Shown only when every player stays paused (autoplay blocked); the text
+           names the cause. Sits above the grid, never on top of a player. -->
+      <div id="autoplay-hint" hidden>
+        <span id="autoplay-hint-text">Your browser paused the streams.</span>
+        <button id="btn-start-all" class="btn-primary">▶ Start all streams</button>
+      </div>
+
+      <!-- Cards are created by scripts/app.js. In kino mode the active card
+           itself is pinned full-window, so its player never reloads. -->
+      <div id="stream-grid" role="list"></div>
     </section>
-
-    <!-- ── Kino Mode (full-window) ───────────────── -->
-    <div id="kino-view" role="dialog" aria-modal="true" aria-label="Focused stream viewer">
-      <!-- iframe only — close button is in the navbar -->
-      <iframe id="kino-iframe" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen
-        title="Stream viewer"></iframe>
-    </div>
-
   </main>
 
-  <!-- ═══════════════════════════════════════════════
-       ADD STREAM MODAL
-  ═══════════════════════════════════════════════ -->
+  <!-- Kino bar: sits ABOVE the player, never on top of it (Twitch blocks
+       autoplay for obscured players). -->
+  <div id="kino-bar" role="toolbar" aria-label="Kino controls">
+    <div class="kino-title">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span id="kino-channel"></span>
+    </div>
+    <div class="kino-actions">
+      <button id="kino-fullscreen" class="btn-ghost" title="Browser fullscreen (F)">Fullscreen</button>
+      <button id="kino-close" title="Back to grid (Esc)">✕ Close</button>
+    </div>
+  </div>
+
+  <!-- ═══ ADD STREAM MODAL ═════════════════════════════ -->
   <div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal">
+    <form class="modal" id="modal-form">
       <h2 id="modal-title">Add a Stream</h2>
       <p>Enter a Twitch channel name or paste the full URL.</p>
 
@@ -95,29 +77,20 @@
         <label for="modal-channel-input">Twitch Channel</label>
         <input id="modal-channel-input" type="text" placeholder="e.g. shroud or twitch.tv/shroud" autocomplete="off"
           spellcheck="false" aria-describedby="modal-hint" />
+        <small id="modal-hint">Channel names: 1–25 chars, a–z, 0–9, _</small>
       </div>
-
-      <p id="modal-hint" style="font-size:11px; margin-top:6px; color: var(--text-muted);">
-        Accepts channel names (1–25 chars: a–z, 0–9, _)
-      </p>
 
       <div class="modal-actions">
-        <button id="btn-modal-close" class="btn-ghost">Cancel</button>
-        <button id="btn-modal-add" class="btn-modal-add">Add to Grid</button>
+        <button type="button" id="btn-modal-close" class="btn-ghost">Cancel</button>
+        <button type="submit" class="btn-primary">Add to Grid</button>
       </div>
-    </div>
+    </form>
   </div>
 
-  <!-- ═══════════════════════════════════════════════
-       TOAST NOTIFICATION
-  ═══════════════════════════════════════════════ -->
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Scripts -->
+  <script src="https://player.twitch.tv/js/embed/v1.js" defer></script>
   <script src="scripts/app.js" defer></script>
-</body>
-
-</html>
 </body>
 
 </html>

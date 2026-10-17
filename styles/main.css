@@ -1,13 +1,12 @@
 /* ============================================================
-   MultiStream SaaS — main.css
-   Theme: Dark glassmorphism, neon-purple accent, premium feel
+   MultiStream — main.css
+   Theme: Dark glassmorphism, neon-purple accent
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap');
 
 /* ─── Design Tokens ──────────────────────────────────────── */
 :root {
-  /* Colors */
   --bg-base: #070711;
   --bg-surface: #0e0e1e;
   --bg-card: rgba(255, 255, 255, 0.04);
@@ -15,29 +14,25 @@
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-accent: rgba(145, 70, 255, 0.5);
 
-  --accent-primary: #9146ff;
-  /* Twitch purple */
+  --accent-primary: #9146ff; /* Twitch purple */
   --accent-glow: #bf8bff;
   --accent-secondary: #00d4ff;
-  /* Electric cyan */
   --danger: #ff4d6a;
+  --live: #e91916;
 
   --text-primary: #f0eeff;
   --text-secondary: #9e9ec4;
   --text-muted: #5a5a85;
 
-  /* Sizing */
   --navbar-h: 64px;
+  --kino-bar-h: 44px;
+  --card-bar-h: 40px;
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 20px;
 
-  /* Shadows */
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 32px rgba(145, 70, 255, 0.35);
-  --shadow-kino: 0 0 0 3px var(--accent-primary), 0 0 60px rgba(145, 70, 255, 0.6);
 
-  /* Transitions */
   --t-fast: 0.15s ease;
   --t-smooth: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   --t-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -54,7 +49,7 @@
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
   font-family: 'Inter', system-ui, sans-serif;
   background: var(--bg-base);
   color: var(--text-primary);
@@ -62,7 +57,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle animated background gradient */
 body::before {
   content: '';
   position: fixed;
@@ -72,6 +66,56 @@ body::before {
     radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0, 212, 255, 0.07) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+kbd {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* ─── Buttons ────────────────────────────────────────────── */
+.btn-primary {
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-primary), #6e28f0);
+  border: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow var(--t-smooth), transform var(--t-smooth);
+  box-shadow: 0 0 20px rgba(145, 70, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 32px rgba(145, 70, 255, 0.55);
+}
+
+.btn-ghost {
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.btn-ghost:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 /* ─── Navbar ─────────────────────────────────────────────── */
@@ -109,7 +153,6 @@ body::before {
   justify-content: center;
   font-size: 18px;
   box-shadow: 0 0 16px rgba(145, 70, 255, 0.5);
-  flex-shrink: 0;
 }
 
 .nav-logo-text {
@@ -133,112 +176,7 @@ body::before {
   gap: 14px;
 }
 
-.nav-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--t-smooth);
-  white-space: nowrap;
-}
-
-.nav-pill:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-accent);
-  color: var(--text-primary);
-}
-
-.nav-pill .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #2dff7f;
-  box-shadow: 0 0 8px #2dff7f;
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-
-@keyframes pulse-dot {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.6;
-    transform: scale(0.8);
-  }
-}
-
-.btn-primary {
-  padding: 8px 20px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent-primary), #6e28f0);
-  border: none;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--t-smooth);
-  box-shadow: 0 0 20px rgba(145, 70, 255, 0.3);
-  font-family: inherit;
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 32px rgba(145, 70, 255, 0.55);
-}
-
-/* ─── Main Layout ────────────────────────────────────────── */
-#app {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  padding-top: var(--navbar-h);
-}
-
-/* ─── Grid View ──────────────────────────────────────────── */
-#grid-view {
-  padding: 28px 24px 40px;
-  max-width: 1800px;
-  margin: 0 auto;
-}
-
-.grid-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.grid-header-left h1 {
-  font-family: 'Outfit', sans-serif;
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  color: var(--text-primary);
-}
-
-.grid-header-left p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 3px;
-}
-
 .stream-count-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   padding: 4px 12px;
   border-radius: 999px;
   background: rgba(145, 70, 255, 0.12);
@@ -246,298 +184,331 @@ body::before {
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-glow);
+  white-space: nowrap;
 }
 
-/* Stream grid — 4 columns */
+/* ─── Grid View ──────────────────────────────────────────── */
+/* No transform/filter on any ancestor of .stream-card: it would break
+   position:fixed for the kino card. */
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding-top: var(--navbar-h);
+}
+
+#grid-view {
+  padding: 28px 24px 40px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.grid-header {
+  margin-bottom: 24px;
+}
+
+.grid-header h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.grid-header p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+#autoplay-hint {
+  flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 10px 10px 10px 18px;
+  border-radius: var(--radius-md);
+  background: rgba(145, 70, 255, 0.12);
+  border: 1px solid var(--border-accent);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+#autoplay-hint[hidden] {
+  display: none;
+}
+
 #stream-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
 /* ─── Stream Card ────────────────────────────────────────── */
+/* Nothing may paint over a player — not even a few pixels of a neighbour's
+   box-shadow or transform. Twitch pauses (and won't resume) players it sees as
+   partly covered. Hover effects therefore stay inside the card's own box. */
 .stream-card {
-  position: relative;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
-  transition: all var(--t-smooth);
-  aspect-ratio: 16 / 9;
-}
-
-.stream-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg,
-      rgba(145, 70, 255, 0.06) 0%,
-      transparent 60%);
-  opacity: 0;
-  transition: opacity var(--t-smooth);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.stream-card:hover::before {
-  opacity: 1;
+  transition: border-color var(--t-smooth);
 }
 
 .stream-card:hover {
-  border-color: var(--border-accent);
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-3px) scale(1.01);
+  border-color: var(--accent-primary);
 }
 
+.player-host {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  cursor: pointer;
+}
 
-/* iframe fills the card — pointer-events enabled so Twitch controls work */
-.stream-card iframe {
+/* Absolutely positioned so the iframe's pixel size (set by sizePlayer() in
+   app.js) never feeds back into the box size — otherwise the kino size would
+   stick after returning to the grid and stretch the cards to portrait. */
+.player-host iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
   width: 100%;
   height: 100%;
   border: none;
-  display: block;
+  /* Grid: clicks go to .player-host (opens kino), never to Twitch, which
+     could pause the stream. Not an overlay: the player stays fully visible. */
+  pointer-events: none;
 }
 
-/* Overlay: click to watch */
-.card-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
+.card-bar {
+  height: var(--card-bar-h);
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  background: linear-gradient(to top,
-      rgba(7, 7, 17, 0.9) 0%,
-      rgba(7, 7, 17, 0.2) 50%,
-      transparent 100%);
-  opacity: 0;
-  transition: opacity var(--t-smooth);
+  align-items: stretch;
+  border-top: 1px solid var(--border-subtle);
 }
 
-.stream-card:hover .card-overlay {
-  opacity: 1;
-}
-
-.card-info {
-  padding: 14px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.card-channel {
+.card-open {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 0 12px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast);
 }
 
-.card-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #fff;
+.card-open:hover {
+  background: var(--bg-card-hover);
+}
+
+.card-index:not(:empty) {
   flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: rgba(145, 70, 255, 0.2);
+  color: var(--accent-glow);
+  font-size: 11px;
 }
 
 .card-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.card-title {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.65);
-  margin-top: 1px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 160px;
-}
-
-.card-watch-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: var(--accent-primary);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: all var(--t-fast);
+/* Player status in the card bar: live / paused / offline / loading */
+.card-status {
+  margin-left: auto;
   flex-shrink: 0;
-}
-
-.card-watch-btn:hover {
-  background: var(--accent-glow);
-}
-
-/* Live badge */
-.live-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 3;
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 9px;
-  border-radius: 4px;
-  background: #e91916;
   font-size: 10px;
   font-weight: 700;
-  color: #fff;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.live-badge::before {
+.card-status::before {
   content: '';
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #fff;
-  animation: blink 1.4s ease-in-out infinite;
+  background: currentColor;
 }
 
-@keyframes blink {
+.card-status[data-status="live"] { color: var(--live); }
+.card-status[data-status="paused"] { color: #ffb020; }
 
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.3;
-  }
+.card-remove {
+  width: var(--card-bar-h);
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--t-fast);
 }
 
-/* Empty / placeholder card */
-.stream-card.empty {
+.card-remove:hover {
+  background: rgba(210, 40, 60, 0.8);
+  color: #fff;
+}
+
+/* ─── Placeholder Slots ──────────────────────────────────── */
+/* Same height as a stream card (16:9 player + card bar): the ::before spacer
+   and the content share one grid cell. */
+.slot {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border-radius: var(--radius-md);
   background: var(--bg-card);
   border: 1px dashed var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 8px;
-  color: var(--text-muted);
-  cursor: default;
-  transition: all var(--t-smooth);
-}
-
-.stream-card.empty:hover {
-  border-color: rgba(145, 70, 255, 0.25);
-  background: rgba(145, 70, 255, 0.03);
-  transform: none;
-  box-shadow: none;
-}
-
-.empty-icon {
-  font-size: 28px;
-  opacity: 0.5;
-}
-
-.empty-label {
-  font-size: 12px;
   color: var(--text-muted);
 }
 
-.add-stream-card {
-  background: var(--bg-card);
-  border: 1px dashed rgba(145, 70, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 8px;
-  color: var(--text-muted);
+.slot::before {
+  content: '';
+  grid-area: 1 / 1;
+  padding-bottom: calc(56.25% + var(--card-bar-h));
+}
+
+.slot > * {
+  grid-area: 1 / 1;
+}
+
+.slot-add {
+  border-color: rgba(145, 70, 255, 0.3);
   cursor: pointer;
   transition: all var(--t-smooth);
-  border-radius: var(--radius-md);
-  aspect-ratio: 16 / 9;
 }
 
-.add-stream-card:hover {
+.slot-add:hover,
+.slot-add:focus-visible {
   border-color: var(--accent-primary);
   background: rgba(145, 70, 255, 0.06);
   color: var(--accent-glow);
-  transform: translateY(-2px);
+  outline: none;
 }
 
-.add-icon {
+.slot-icon {
   font-size: 32px;
   font-weight: 300;
   line-height: 1;
 }
 
-.add-label {
+.slot-label {
+  margin-top: 8px;
   font-size: 12px;
   font-weight: 500;
 }
 
 /* ─── Kino Mode ──────────────────────────────────────────── */
-#kino-view {
+/* The active card is pinned below the kino bar. Same iframe as in the grid,
+   so playback continues without a reload. */
+/* On <html>: it owns the page scrollbar, which would otherwise stay visible
+   next to the kino player. */
+html:has(body.kino-open) {
+  overflow: hidden;
+}
+
+body.kino-open #navbar {
+  display: none;
+}
+
+.stream-card.is-kino {
+  position: fixed;
+  top: var(--kino-bar-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: #000;
+}
+
+.stream-card.is-kino .player-host {
+  flex: 1;
+  aspect-ratio: auto;
+  cursor: default;
+}
+
+.stream-card.is-kino .player-host iframe {
+  pointer-events: auto; /* Twitch controls (volume, quality …) usable in kino */
+}
+
+.stream-card.is-kino .card-bar {
+  display: none;
+}
+
+#kino-bar {
   display: none;
   position: fixed;
-  inset: 0; /* fills full screen — navbar is hidden when kino is open */
-  z-index: 150;
-  background: #000;
-  animation: kino-enter 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--kino-bar-h);
+  z-index: 210;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 0 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-#kino-view.visible {
-  display: block;
+body.kino-open #kino-bar {
+  display: flex;
 }
 
-@keyframes kino-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.kino-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 0;
 }
 
-@keyframes kino-exit {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: scale(0.97);
-  }
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 8px var(--live);
+  animation: blink 1.4s ease-in-out infinite;
 }
 
-#kino-view.exiting {
-  animation: kino-exit 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
-#kino-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: block;
+.kino-actions {
+  display: flex;
+  gap: 8px;
 }
 
-/* Kino close button — lives in navbar, styled like a danger pill */
 #kino-close {
   padding: 6px 16px;
   border-radius: 999px;
@@ -547,7 +518,6 @@ body::before {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  font-family: inherit;
   transition: all var(--t-smooth);
   white-space: nowrap;
 }
@@ -556,10 +526,7 @@ body::before {
   background: rgba(210, 40, 60, 0.8);
   border-color: rgba(255, 80, 100, 0.8);
   color: #fff;
-  transform: none;
 }
-
-/* Navbar stays fully visible over kino in hover mode */
 
 /* ─── Add Stream Modal ───────────────────────────────────── */
 #modal-overlay {
@@ -579,13 +546,8 @@ body::before {
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal {
@@ -600,15 +562,8 @@ body::before {
 }
 
 @keyframes modal-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal h2 {
@@ -656,57 +611,36 @@ body::before {
   color: var(--text-muted);
 }
 
+.modal-field small {
+  display: block;
+  font-size: 11px;
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+
 .modal-actions {
   display: flex;
   gap: 10px;
   margin-top: 24px;
 }
 
-.btn-ghost {
+.modal-actions .btn-ghost {
   flex: 1;
-  padding: 10px;
   border-radius: var(--radius-sm);
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--t-fast);
-  font-family: inherit;
 }
 
-.btn-ghost:hover {
-  border-color: var(--text-muted);
-  color: var(--text-primary);
-}
-
-.btn-modal-add {
+.modal-actions .btn-primary {
   flex: 2;
-  padding: 10px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--accent-primary), #6e28f0);
-  border: none;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--t-smooth);
-  box-shadow: 0 0 16px rgba(145, 70, 255, 0.3);
-  font-family: inherit;
 }
 
-.btn-modal-add:hover {
-  box-shadow: 0 0 28px rgba(145, 70, 255, 0.55);
-  transform: translateY(-1px);
-}
-
-/* ─── Toast Notification ─────────────────────────────────── */
+/* ─── Toast ──────────────────────────────────────────────── */
+/* Slides in over the navbar, never over the players (see .stream-card). */
 #toast {
   position: fixed;
-  bottom: 28px;
+  top: 11px;
   left: 50%;
-  transform: translateX(-50%) translateY(80px);
+  transform: translateX(-50%) translateY(-80px);
   z-index: 999;
   padding: 12px 24px;
   border-radius: 999px;
@@ -716,27 +650,27 @@ body::before {
   font-size: 13px;
   font-weight: 500;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  transition: transform 0.35s var(--t-spring), opacity 0.35s ease;
+  transition: transform 0.35s var(--t-spring), opacity 0.35s ease, visibility 0s 0.35s;
   opacity: 0;
+  visibility: hidden;
   white-space: nowrap;
+  pointer-events: none;
 }
 
 #toast.show {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
+  visibility: visible;
+  transition: transform 0.35s var(--t-spring), opacity 0.35s ease;
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 1400px) {
-  #stream-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  #stream-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1024px) {
-  #stream-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  #stream-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 600px) {
@@ -745,68 +679,14 @@ body::before {
     gap: 10px;
   }
 
-  #grid-view {
-    padding: 16px;
-  }
-
-  .nav-logo-text {
-    font-size: 17px;
-  }
+  #grid-view { padding: 16px; }
+  #navbar { padding: 0 16px; }
+  .nav-logo-text { font-size: 17px; }
+  .stream-count-badge { display: none; }
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-base);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(145, 70, 255, 0.3);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(145, 70, 255, 0.6);
-}
-
-@media (max-width: 1024px) {
-  #stream-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  #stream-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  #grid-view {
-    padding: 16px;
-  }
-
-  .nav-logo-text {
-    font-size: 17px;
-  }
-}
-
-/* ─── Scrollbar ──────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-base);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(145, 70, 255, 0.3);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(145, 70, 255, 0.6);
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: rgba(145, 70, 255, 0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(145, 70, 255, 0.6); }
